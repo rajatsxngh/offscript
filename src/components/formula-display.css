@@ -1,0 +1,59 @@
+.formula-display {
+  display: inline-flex;
+  justify-content: center;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  color: inherit;
+  font-family: "New York", "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  font-size: inherit;
+  font-weight: 400;
+  text-align: center;
+}
+
+.formula-display--plain {
+  display: block;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.formula-display--fraction {
+  padding-block: .12em;
+  font-style: italic;
+  line-height: 1.25;
+}
+
+.formula-display-layout {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .3em;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.formula-display-variable,
+.formula-display-equals {
+  flex-shrink: 0;
+}
+
+.formula-display-equals {
+  font-style: normal;
+}
+
+.formula-display-fraction {
+  display: inline-grid;
+  min-width: 0;
+  text-align: center;
+}
+
+.formula-display-numerator {
+  padding: 0 .22em .14em;
+  border-bottom: 1px solid currentColor;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.formula-display-denominator {
+  padding: .1em .22em 0;
+}

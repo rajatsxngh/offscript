@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="#0866ff" role="img" aria-labelledby="offset-title">
+  <title id="offset-title">Offscript Offset mark</title>
+  <path d="M40 2C70-2 98 22 98 50C98 57 97 64 94 69Q93 71 91 69L67 52C66 41 58 33 47 33H40C35 33 32 30 32 25V12C32 6 34 3 40 2Z"/>
+  <path d="M40 2C70-2 98 22 98 50C98 57 97 64 94 69Q93 71 91 69L67 52C66 41 58 33 47 33H40C35 33 32 30 32 25V12C32 6 34 3 40 2Z" transform="rotate(180 50 50)"/>
+</svg>

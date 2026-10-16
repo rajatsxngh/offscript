@@ -1,0 +1,117 @@
+/* Gallery: a quiet exhibition of ideas, with a single cobalt conversation. */
+.gallery-workspace {
+  --background: #faf9f6;
+  --paper: #fffefa;
+  --sidebar: #faf9f6;
+  --ink: #181917;
+  --body: #474944;
+  --muted: #777b74;
+  --line: #e5e4df;
+  --accent: #1255ed;
+  --accent-soft: #eef2ff;
+  --green: #1255ed;
+  --green-soft: #eef2ff;
+  background: #faf9f6;
+  color: var(--ink);
+}
+.gallery-workspace ::selection { background: #cbd8ff; color: #122454; }
+.gallery-workspace .lumen-topbar { height: 120px; min-height: 120px; padding: 27px 34px 0; gap: 24px; background: #faf9f6ed; border-bottom: 1px solid #e4e3de; backdrop-filter: blur(12px); }
+.gallery-edition { position: absolute; top: 15px; left: 35px; color: #73766e; font: 550 9px/1.2 var(--sans); letter-spacing: .23em; }
+.gallery-edition > span { margin: 0 9px; color: #b3b5af; }
+.gallery-heading { display: flex; align-items: center; gap: 25px; min-width: 0; }
+.gallery-workspace .brand { gap: 9px; color: #161817; }
+.gallery-workspace .brand > svg { width: 27px; height: 27px; }
+.gallery-workspace .brand > .brand-wordmark { font-size: 28px; }
+.gallery-header-divider { width: 1px; height: 35px; flex: 0 0 1px; background: #c5c7c0; }
+.gallery-workspace .lumen-map-selector { position: static; transform: none; justify-content: flex-start; min-width: 0; max-width: 230px; height: 56px; padding: 4px 0; gap: 12px; border: 0; border-radius: 5px; background: none; box-shadow: none; backdrop-filter: none; color: #1c1e1b; }
+.gallery-workspace .lumen-map-selector:hover { color: #1255ed; background: none; box-shadow: none; }
+.gallery-workspace .lumen-map-selector:active { transform: translateY(1px); }
+.gallery-map-summary { display: flex; flex-direction: column; gap: 6px; min-width: 0; text-align: left; }
+.gallery-map-summary strong { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font: 600 15px/1.2 var(--sans); letter-spacing: -.025em; }
+.gallery-map-summary small { color: #6e7368; font: 400 11px/1.2 var(--sans); }
+.gallery-workspace .lumen-map-selector > svg { flex: 0 0 13px; color: #888d83; margin: 0; }
+.gallery-workspace .topbar-right { gap: 16px; margin-left: auto; }
+.gallery-workspace .save-indicator { display: none; }
+.gallery-workspace .icon-button { color: #5d6258; border-radius: 8px; }
+.gallery-workspace .icon-button:hover { color: #151813; background: #eeeee8; }
+.gallery-workspace .gallery-search { display: flex; align-items: center; gap: 10px; width: 220px; height: 43px; padding: 0 12px; border: 1px solid transparent; background: #eeede8; color: #73776f; }
+.gallery-search > svg { flex-shrink: 0; }
+.gallery-search > span { flex: 1; text-align: left; font: 400 12px/1 var(--sans); }
+.gallery-search kbd { padding: 4px 5px; border: 1px solid #d5d7cf; border-radius: 4px; background: #fafbf7; color: #81867b; font: 500 10px/1 var(--sans); }
+.gallery-workspace .gallery-search:hover { border-color: #d5d8cf; background: #eaeae4; }
+.gallery-new-thought { display: inline-flex; align-items: center; flex-shrink: 0; gap: 10px; padding: 0; border-radius: 24px; color: #21241e; font: 550 12px/1.2 var(--sans); white-space: nowrap; }
+.gallery-new-icon { display: grid; place-items: center; width: 43px; height: 43px; border-radius: 50%; background: #191b18; color: #fff; box-shadow: inset 0 1px 0 #ffffff26; transition: background 160ms ease, transform 180ms ease; }
+.gallery-new-thought:hover .gallery-new-icon { background: #1255ed; transform: rotate(90deg); }
+.gallery-new-thought:disabled { opacity: .4; cursor: not-allowed; }
+.gallery-workspace .lumen-profile { width: 37px; height: 37px; border: 1px solid #d2d5cc; color: #555b4f; background: transparent; box-shadow: none; font-size: 10px; }
+.gallery-workspace .lumen-profile:hover { border-color: #777f6d; color: #181d13; }
+.gallery-workspace .map-work-area,
+.gallery-workspace.is-thread-open:not(.is-thread-floating) .map-work-area { margin-right: 0; transition: none; }
+.gallery-workspace .sidebar { top: 132px; left: 22px; bottom: 20px; border: 1px solid #dedfd7; border-radius: 16px; background: #fdfcf8f5; box-shadow: 0 16px 54px #31352a16; backdrop-filter: blur(16px); }
+.gallery-workspace .sidebar-scrim { background: #383f2f0d; backdrop-filter: blur(2px); }
+.gallery-workspace .sidebar .search-button { color: #686e60; border-color: #dedfd7; background: #f6f6ef; }
+.gallery-workspace .sidebar-brand .brand > .brand-wordmark { font-size: 25px; }
+.gallery-workspace .sidebar-section-label { color: #858b7c; }
+.gallery-workspace .notebook-item { color: #646c5b; }
+.gallery-workspace .notebook-item:hover, .gallery-workspace .tree-row:hover { background: #f0f1e9; }
+.gallery-workspace .notebook-item.active { color: #18396d; border-color: #d4dff5; background: #edf2fc; }
+.gallery-workspace .sidebar-rule { background: #e2e4d9; }
+.gallery-workspace .tree-row, .gallery-workspace .tree-topic, .gallery-workspace .sidebar-setting { color: #68705f; }
+.gallery-workspace .tree-row.active { color: #1255ed; background: #edf2fc; }
+.gallery-workspace .local-workspace { border-color: #e0e3d8; color: #7e8676; }
+.gallery-workspace .local-avatar { color: #5f6856; background: #eeeee6; }
+.gallery-workspace .modal { color: #2e3428; background: #fdfcf9; border-color: #dedfd7; border-radius: 18px; box-shadow: 0 25px 90px #252b2030; }
+.gallery-workspace .modal-top { background: #fdfcf9; border-color: #e6e7df; }
+.gallery-workspace .modal-top h2 { color: #171d13; }
+.gallery-workspace .modal :is(input,textarea,select) { border-color: #d9ddcf; background: #fffefa; color: #252d1c; }
+.gallery-workspace .modal .button.primary { border-color: #1255ed; background: #1255ed; color: white; }
+.gallery-workspace .modal .button.ghost { color: #6a735e; }
+.gallery-workspace .settings-intro .brand.small > svg { width: 36px; height: 36px; }
+.gallery-workspace .export-popover { background: #fffefa; border-color: #e0e4d6; box-shadow: 0 12px 38px #20291917; }
+.gallery-workspace .export-popover a { color: #525d44; }
+.gallery-workspace .export-popover a:hover { background: #f1f3ea; }
+.gallery-workspace .empty-workspace { color: #363f2d; }
+.gallery-workspace .empty-workspace h1 { color: #1c2512; }
+
+@media (max-width: 1199px) {
+  .gallery-workspace .gallery-search { width: 42px; justify-content: center; padding: 0; background: transparent; }
+  .gallery-search > span, .gallery-search kbd { display: none; }
+  .gallery-workspace .topbar-right { gap: 12px; }
+  .gallery-heading { gap: 19px; }
+}
+@media (max-width: 999px) {
+  .gallery-workspace .lumen-topbar { height: 104px; min-height: 104px; padding: 24px 24px 0; gap: 16px; }
+  .gallery-edition { top: 13px; left: 25px; font-size: 8px; }
+  .gallery-workspace .brand > .brand-wordmark { font-size: 25px; }
+  .gallery-workspace .lumen-map-selector { max-width: 180px; }
+  .gallery-new-thought > span:last-child { display: none; }
+  .gallery-workspace .sidebar { top: 116px; }
+}
+@media (max-width: 760px) {
+  .gallery-heading { gap: 13px; }
+  .gallery-workspace .topbar-right { gap: 5px; }
+  .gallery-workspace .lumen-map-selector { max-width: 150px; }
+  .gallery-workspace .brand > .brand-wordmark { font-size: 23px; }
+  .gallery-workspace .brand > svg { width: 25px; height: 25px; }
+}
+@media (max-width: 600px) {
+  .gallery-workspace .lumen-topbar { height: 88px; min-height: 88px; padding: 20px 13px 0; gap: 10px; }
+  .gallery-edition { top: 10px; left: 16px; font-size: 7px; letter-spacing: .18em; }
+  .gallery-workspace .lumen-brand-home { min-width: 33px; }
+  .gallery-heading { gap: 8px; flex: 1; }
+  .gallery-header-divider { height: 28px; }
+  .gallery-workspace .lumen-map-selector { max-width: calc(100vw - 196px); height: 44px; gap: 5px; }
+  .gallery-map-summary strong { font-size: 13px; }
+  .gallery-map-summary small { font-size: 9px; }
+  .gallery-workspace .gallery-search { display: none; }
+  .gallery-workspace .topbar-right { gap: 3px; }
+  .gallery-new-icon { width: 35px; height: 35px; }
+  .gallery-workspace .icon-button.export-button { width: 32px; min-width: 32px; }
+  .gallery-workspace .lumen-profile { width: 29px; height: 29px; font-size: 8px; }
+  .gallery-workspace .sidebar { top: 99px; left: 10px; bottom: 10px; }
+  .gallery-workspace .sidebar-brand .brand > .brand-wordmark { display: block; font-size: 25px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .gallery-new-thought:hover .gallery-new-icon { transform: none; }
+}
+@media print { .gallery-edition { display: none; } }

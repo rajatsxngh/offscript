@@ -13,6 +13,7 @@ import { AiConnection } from './ai-connection';
 import { ChatText } from './chat-text';
 import { Logo, OffscriptMark } from './brand-logo';
 import './lumen-workspace.css';
+import './gallery-workspace.css';
 
 type Modal = 'search' | 'notebook' | 'topic' | 'settings' | 'history' | 'keep' | 'delete' | 'connect' | null;
 type QuestionRequest = { topicId: string; question: string; userMessageId?: string; requestKey: string };
@@ -516,7 +517,7 @@ export default function WorkspaceApp() {
 
   if (!workspace) return <div className="loading-screen"><Logo /><div className="loading-card">{loadingError ? <><h1>Let’s reconnect your workspace.</h1><p>{loadingError}</p><button className="button primary" onClick={() => void load()}>Try again</button></> : <><LoaderCircle className="spinner" size={24} /><p>Opening your workspace…</p></>}</div></div>;
 
-  return <div className={`workspace map-first-workspace lumen-workspace ${threadOpen ? 'is-thread-open' : ''} ${threadFloating ? 'is-thread-floating' : ''}`}>
+  return <div className={`workspace map-first-workspace lumen-workspace gallery-workspace ${threadOpen ? 'is-thread-open' : ''} ${threadFloating ? 'is-thread-floating' : ''}`}>
     {mobileSidebarOpen && <button className="sidebar-scrim" aria-label="Close navigation" tabIndex={-1} inert={threadOpen || !!modal} onClick={() => setSidebarOpen(false)} />}
     <aside ref={sidebarRef} id="workspace-navigation" className={`sidebar ${sidebarOpen ? 'open' : ''}`} aria-label="Map navigation" aria-hidden={!sidebarOpen || undefined} tabIndex={-1} inert={threadOpen || !!modal || !sidebarOpen}><div className="sidebar-brand"><Logo /><button className="icon-button" aria-label="Close navigation" onClick={() => setSidebarOpen(false)}><X size={18} /></button></div>
       <button className="search-button" onClick={() => { setSearch(''); setModal('search'); }}><Search size={16} /><span>Search anything</span><kbd>⌘ K</kbd></button>
@@ -529,28 +530,27 @@ export default function WorkspaceApp() {
     </aside>
     <div className="workspace-body" inert={(threadOpen && mobileViewport) || !!modal || mobileSidebarOpen}>
       <header className="topbar lumen-topbar">
-        <button className="lumen-brand-home" aria-label="Back to map" onClick={() => closeThread()}><Logo /></button>
-        <button ref={sidebarTriggerRef} className="lumen-map-selector" aria-label="Open map library" aria-expanded={sidebarOpen} aria-controls="workspace-navigation" onClick={openNavigation}><Network size={16} /><span>{notebook?.title || 'Your maps'}</span><ChevronDown size={14} /></button>
+        <span className="gallery-edition">OFFSCRIPT <span>/</span> GALLERY</span>
+        <div className="gallery-heading">
+          <button className="lumen-brand-home" aria-label="Back to map" onClick={() => closeThread()}><Logo /></button>
+          <span className="gallery-header-divider" aria-hidden="true" />
+          <button ref={sidebarTriggerRef} className="lumen-map-selector" aria-label="Open map library" aria-expanded={sidebarOpen} aria-controls="workspace-navigation" onClick={openNavigation}><span className="gallery-map-summary"><strong>{notebook?.title || 'Your maps'}</strong><small>{topics.length} connected {topics.length === 1 ? 'idea' : 'ideas'}</small></span><ChevronDown size={14} /></button>
+        </div>
         <div className="topbar-right">
           <span className={`save-indicator ${saveState}`} role="status">{saveState === 'saving' ? <LoaderCircle className="spinner" size={13} /> : saveState === 'error' ? <CircleHelp size={13} /> : <CheckCheck size={14} />}<span>{saveState === 'saving' ? 'Saving…' : saveState === 'error' ? 'Unsaved changes' : (blockDraft || titleDraft) ? 'Draft saved' : 'Saved'}</span></span>
-          <button className="icon-button lumen-search" aria-label="Search thoughts" title="Search · ⌘ K" onClick={() => { setSearch(''); setModal('search'); }}><Search size={20} /></button>
+          <button className="icon-button lumen-search gallery-search" aria-label="Search thoughts" title="Search · ⌘ K" onClick={() => { setSearch(''); setModal('search'); }}><Search size={19} /><span>Search thoughts…</span><kbd>⌘ K</kbd></button>
+          <button className="gallery-new-thought" aria-label="New thought" disabled={!notebook} onClick={() => beginTopic(false)}><span className="gallery-new-icon"><Plus size={22} /></span><span>New thought</span></button>
           <div ref={exportRef} className="export-wrap"><button ref={exportTriggerRef} className="icon-button export-button" aria-label="Export map" aria-expanded={exportOpen} aria-controls={exportOpen ? 'map-export-options' : undefined} disabled={!notebook} onClick={() => setExportOpen(!exportOpen)}><ArrowDownToLine size={18} /></button>{exportOpen && notebook && <div id="map-export-options" className="popover export-popover" role="group" aria-label="Export saved notes"><span>EXPORT SAVED NOTES</span><a href={`/api/export?notebookId=${encodeURIComponent(notebook.id)}&format=markdown`} onClick={() => setExportOpen(false)}><FileText size={15} /> Markdown</a><a href={`/api/export?notebookId=${encodeURIComponent(notebook.id)}&format=json`} onClick={() => setExportOpen(false)}><Layers2 size={15} /> Structured JSON</a></div>}</div>
           <button className="lumen-profile" aria-label="Workspace settings" onClick={() => { setError(''); setModal('settings'); }}>You</button>
         </div>
       </header>
-      <nav className="lumen-tool-rail" aria-label="Canvas tools">
-        <button aria-label="New topic" title="New topic" disabled={!notebook} onClick={() => beginTopic(false)}><Plus size={21} /></button>
-        <button aria-label="Map library" title="Map library" onClick={openNavigation}><Network size={19} /></button>
-        <span className="tool-divider" />
-        <button className={workspace.aiConfigured ? 'is-connected' : ''} aria-label={workspace.aiConfigured ? 'Manage AI connection' : 'Connect AI'} title={workspace.aiConfigured ? 'AI connected' : 'Connect AI'} onClick={openConnection}><Sparkles size={20} /><span className="tool-status-dot" /></button>
-      </nav>
       <div className="map-work-area">
         {!notebook ? <section className="empty-workspace"><span className="empty-icon"><Network size={30} /></span><div className="eyebrow">A LITTLE SPACE TO THINK</div><h1>Every idea leads somewhere.</h1><p>Create a map for something you want to understand.<br />Follow a connection. Open a thread. See the bigger picture.</p><button className="button primary" onClick={() => { setNewTitle(''); setNewDescription(''); setModal('notebook'); }}><Plus size={16} />Create your first map</button></section> : <TopicMap key={notebook.id} topics={topics} selectedId={activeId || undefined} onSelect={navigate} onCreate={() => beginTopic(false)} />}
       </div>
     </div>
     {threadOpen && topic && !modal && !mobileViewport && <ThreadTether key={topic.id} topicId={topic.id} />}
     {threadOpen && topic && <TopicThread mapId={topic.notebookId} onFloatingChange={setThreadFloating} title={topic.title} suspended={!!modal} onClose={() => closeThread()}>
-      <div className="thread-toolbar"><div className="thread-location" data-thread-drag-handle role={mobileViewport ? undefined : "button"} tabIndex={mobileViewport ? -1 : 0} aria-label={mobileViewport ? undefined : "Move chat panel"} aria-keyshortcuts={mobileViewport ? undefined : "Shift+ArrowLeft Shift+ArrowRight Shift+ArrowUp Shift+ArrowDown Home"} title={mobileViewport ? undefined : "Drag to move · Shift + arrow keys to move · Home to dock"}><GripVertical size={16} aria-hidden="true" /><span>{notebook?.title}</span><span className="thread-live-dot" aria-hidden="true" /></div><div className="thread-toolbar-actions"><button data-thread-dock className="icon-button thread-dock-button" hidden={!threadFloating || mobileViewport} aria-label="Dock chat panel" title="Dock chat panel on the right"><PanelRightClose size={16} /></button><button className="icon-button thread-history" aria-label="View topic history" title="Version history" onClick={() => void openHistory()}><History size={16} /></button><button className="thread-branch-button" onClick={() => beginTopic(true, null)}><GitBranch size={14} />Branch out</button><button className="icon-button" title="Print this thread" aria-label="Print this thread" onClick={() => window.print()}><ArrowDownToLine size={16} /></button><span className="thread-toolbar-divider" /><button data-thread-close className="icon-button" aria-label="Close thread and return to map" title="Back to map · Esc" onClick={() => closeThread()}><X size={19} /></button></div></div>
+      <div className="thread-toolbar"><div className="thread-location" data-thread-drag-handle role={mobileViewport ? undefined : "button"} tabIndex={mobileViewport ? -1 : 0} aria-label={mobileViewport ? undefined : "Move chat panel"} aria-keyshortcuts={mobileViewport ? undefined : "Shift+ArrowLeft Shift+ArrowRight Shift+ArrowUp Shift+ArrowDown Home"} title={mobileViewport ? undefined : "Drag to move · Shift + arrow keys to move · Home to reset position"}><GripVertical size={16} aria-hidden="true" /><span>{notebook?.title}</span><span className="thread-live-dot" aria-hidden="true" /></div><div className="thread-toolbar-actions"><button data-thread-dock className="icon-button thread-dock-button" hidden={!threadFloating || mobileViewport} aria-label="Reset chat position" title="Return chat to its starting position"><PanelRightClose size={16} /></button><button className="icon-button thread-history" aria-label="View topic history" title="Version history" onClick={() => void openHistory()}><History size={16} /></button><button className="thread-branch-button" onClick={() => beginTopic(true, null)}><GitBranch size={14} />Branch out</button><button className="icon-button" title="Print this thread" aria-label="Print this thread" onClick={() => window.print()}><ArrowDownToLine size={16} /></button><span className="thread-toolbar-divider" /><button data-thread-close className="icon-button" aria-label="Close thread and return to map" title="Back to map · Esc" onClick={() => closeThread()}><X size={19} /></button></div></div>
       <main className="thread-scroll" ref={scrollRef} onScroll={() => { if (activeId && scrollRef.current) writeLocal(`scroll:${activeId}:${threadTabRef.current}`, scrollRef.current.scrollTop); }}>
         <article className="thread-story" onMouseUp={captureSelection} onKeyUp={e => { if (e.key === 'Shift') captureSelection(); }}>
           {threadTab === 'notes' && ancestors.length > 1 && !topic.anchor && <nav className="topic-path" aria-label="Topic ancestry">{ancestors.map(a => <span key={a.id}><button onClick={() => navigate(a.id)}>{a.title}</button><ChevronRight size={12} /></span>)}<span className="current">{topic.title}</span></nav>}

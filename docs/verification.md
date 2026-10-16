@@ -179,3 +179,21 @@ The [draggable chat screenshot](screenshots/draggable-chat.jpg) shows the floati
 ## Offset logo identity — 16 October 2026
 
 Applied the user's selected concept C as shared SVG artwork in the header, library, loading state, settings emblem and assistant avatar, with matching standalone assets and browser icon. Production build and TypeScript passed. Browser checks at actual 837 × 614 confirmed the full header lockup, library wordmark, two-piece blue settings emblem and updated icon metadata. At actual 300 × 649, the header used the symbol alone without horizontal overflow or overlap with the map selector; the library retained the full wordmark. The viewport was reset afterward. No data changed and no new behavior tests were needed for this presentation-only change. [Desktop proof](screenshots/offset-brand-desktop.jpg).
+
+## Gallery comparison branch — 16 October 2026
+
+The Gallery interface is isolated on `codex/gallery-ui` in a managed worktree, using port 3001. The original Lumen checkout remains clean on `main` at baseline `7070cbb` and runs on port 3000. Gallery began with a SQLite backup of the original six topics. Both databases passed `PRAGMA quick_check` and still contain six topics. No credentials were copied; later data and browser drafts are independent.
+
+| Check | Status | Observed evidence and limits |
+| --- | --- | --- |
+| Final unit suite and production build | Passed | 74/74 tests; build exited 0, checked TypeScript and generated all routes. Logs: `/tmp/offscript-gallery-tests.log` and `/tmp/offscript-gallery-build.log`. Final preview restarted successfully. |
+| Map layout and framing | Passed | Numbered editorial nodes and actual branch labels; tests cover growing/malformed graphs, node overlap, label clearance, readable initial zoom and explicit Fit. |
+| Mouse dragging and tether | Passed | Chat moved −90/−35 px with its tether attached; a Z-scores node moved +28/−12 px and was restored. Variance switching retargeted the tether; the adjusted default card cleared its node at the tested wide viewport. |
+| Saved drafts and positions | Passed | A test draft and moved panel survived Notes/Conversation switches and reload. The draft was cleared back to its original empty value. Reset returned the panel to its default position. |
+| Keyboard and navigation | Passed | Shift+Left moved the chat and Home reset it with an announcement. Search found Z-scores and opened its thread. New thought opened and cancelled correctly; Export exposed both formats and Escape closed its menu. |
+| Responsive layout | Passed | Checked actual 390×844, 837×846, 1230×846, 1280×720, 1280×801 and 1600×1100 layouts during refinement. No document horizontal overflow was observed. Mobile uses the modal thread; compact desktop uses a 440px card. Final 1280×801 check confirmed the 480px card and visible definition/formula. |
+| Short desktop regression | Passed | Wide cards retain a 480px floor and compact spacing through 945px viewport height. Tests cover the 800→801 height boundary and viewport clamping. |
+| Question-to-node flow | Passed in isolated QA database | On temporary port 3002, “What does z = 2 mean?” created a connected child with the exact saved question. Returning to Z-scores showed the new child under “Followed from here”. The temporary server and tab were closed; comparison databases were untouched by this test. |
+| Review | Passed for targeted scope | Final read-only review and `git diff --check`; a height-breakpoint concern was corrected and tested. |
+
+Screenshots: [Gallery desktop](screenshots/gallery-desktop.jpg), [compact map](screenshots/gallery-compact.jpg). Temporary viewport overrides were reset after QA. Both comparison previews remain available. No live AI generation was performed because no key was configured; the existing AI integration is retained. Reduced-motion styling was reviewed in code, not emulated, and this is not a complete accessibility audit.

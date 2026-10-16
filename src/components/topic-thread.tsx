@@ -1,8 +1,9 @@
 'use client';
 
 import { useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react';
-import { clampThreadPosition, floatingThreadSize, readThreadPosition, threadPositionKey, THREAD_DESKTOP_WIDTH, type ThreadPosition } from '../lib/thread-position';
+import { clampThreadPosition, defaultThreadPosition, floatingThreadSize, readThreadPosition, threadPositionKey, THREAD_DESKTOP_WIDTH, type ThreadPosition } from '../lib/thread-position';
 import './topic-thread.css';
+import './gallery-thread.css';
 
 interface PanelDrag {
   pointerId: number;
@@ -66,7 +67,7 @@ export function TopicThread({ title, mapId, suspended, onClose, onFloatingChange
     finishDrag(true);
     ref.current?.querySelector<HTMLElement>('[data-thread-drag-handle]')?.focus({ preventScroll: true });
     place(null);
-    setAnnouncement(persist(null) ? 'Chat docked to the right.' : 'Chat docked for this session.');
+    setAnnouncement(persist(null) ? 'Chat returned to its original position.' : 'Chat position reset for this session.');
   }
 
   useLayoutEffect(() => {
@@ -135,9 +136,9 @@ export function TopicThread({ title, mapId, suspended, onClose, onFloatingChange
       const bounds = ref.current!.getBoundingClientRect();
       const origin = positionRef.current || { x: bounds.left, y: bounds.top };
       const next = clampThreadPosition({ x: origin.x + direction.x, y: origin.y + direction.y }, { width: window.innerWidth, height: window.innerHeight });
-      place(next); persist(next); setAnnouncement('Chat moved. Press Home to dock it.');
+      place(next); persist(next); setAnnouncement('Chat moved. Press Home to reset its position.');
     } else if (event.key === 'Enter' || event.key === ' ') {
-      event.preventDefault(); setAnnouncement('Use Shift and the arrow keys to move the chat. Press Home to dock it.');
+      event.preventDefault(); setAnnouncement('Use Shift and the arrow keys to move the chat. Press Home to reset its position.');
     }
   }
 
@@ -205,8 +206,9 @@ export function TopicThread({ title, mapId, suspended, onClose, onFloatingChange
   }, []);
 
   const floatingSize = floatingThreadSize(viewport);
+  const panelPosition = position || defaultThreadPosition(viewport);
   return <div className={`thread-backdrop ${isModal ? 'is-modal' : isFloating ? 'is-floating' : 'is-docked'}`} onMouseDown={event => { if (isModal && event.target === event.currentTarget && !suspended) onClose(); }}>
-    <div ref={ref} className={`topic-thread${dragging ? ' is-dragging' : ''}`} style={isFloating ? { left: position.x, top: position.y, width: floatingSize.width, height: floatingSize.height } : undefined} role={isModal ? 'dialog' : 'complementary'} aria-modal={isModal && !suspended ? true : undefined} aria-label={`${title} thread`} aria-hidden={suspended || undefined} inert={suspended}
+    <div ref={ref} className={`topic-thread${dragging ? ' is-dragging' : ''}`} style={!isModal ? { left: panelPosition.x, top: panelPosition.y, width: floatingSize.width, height: floatingSize.height } : undefined} role={isModal ? 'dialog' : 'complementary'} aria-modal={isModal && !suspended ? true : undefined} aria-label={`${title} thread`} aria-hidden={suspended || undefined} inert={suspended}
       onPointerDown={pointerDown} onPointerMove={pointerMove} onPointerUp={event => finishDrag(false, event.pointerId)} onPointerCancel={event => finishDrag(true, event.pointerId)} onLostPointerCapture={event => finishDrag(true, event.pointerId)} onKeyDown={panelKeyDown}
       onClick={event => { if (!isModal && !suspended && (event.target as HTMLElement).closest('[data-thread-dock]')) { event.preventDefault(); dock(); } }}>
       <div className="thread-surface">{children}</div>

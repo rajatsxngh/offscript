@@ -1,4 +1,10 @@
-# Offscript
+# Offscript — Gallery comparison branch
+
+This checkout is the alternate **Gallery** interface on `codex/gallery-ui`. Its local preview runs at **http://127.0.0.1:3001**. The original Lumen checkout remains on `main` at **http://127.0.0.1:3000**.
+
+The variants have separate databases and browser drafts. Gallery starts with a snapshot of the existing maps; later changes are not synchronized. No AI credentials were copied. See [Gallery design and comparison notes](docs/design/gallery.md).
+
+Start Gallery with `OFFSCRIPT_LOCAL_PREVIEW=1 npm run start` after `npm run build`, or use `npm run dev`. Both commands use port 3001 in this branch.
 
 Follow your curiosity. Keep your place.
 
@@ -14,7 +20,7 @@ The local slice also includes a removable statistics example, editable structure
 
 Each node has its own saved conversation and frozen ancestor context. Choose **Ask in new node** in the composer, or **Explore as new node** on an existing user question, to create a connected child with that question already saved. When AI is configured, the child immediately requests its first answer; otherwise, the question remains available after connecting. Branch creation is atomic and replay-safe, and the first answer reuses the saved question.
 
-All 38 tests, typechecking and the final optimized build pass. Live API checks passed for AI-settings safeguards, atomic question branching, replay/conflict handling, promotion and context isolation. Browser checks at 516 × 614 confirmed child creation, saved-question recovery after reload, promotion into another connected node and the resulting three-node map. No real API key or live AI answer has been verified. Earlier browser checks covered compact/wide map layouts, thread navigation, map-position preservation and draft recovery. See [the verification record](docs/verification.md) for exact evidence and remaining limits.
+The test suite and optimized production build pass. Gallery browser checks cover responsive layouts, draggable nodes and chat, keyboard movement, saved drafts, search, Notes, and question-to-node branching in an isolated test workspace. No real API key or live AI answer has been verified. See [the verification record](docs/verification.md) for exact evidence and remaining limits.
 
 ## Run locally
 
@@ -27,9 +33,9 @@ cp .env.example .env.local
 npm run dev
 ```
 
-This checkout has local macOS/iCloud workarounds: `node_modules` links to `.runtime.nosync/node_modules`, and `.next` links to `.runtime.nosync/next`. Cloud offloading interrupted dependency reads and corrupted generated build-cache files; the source files stay in place. Generated `.nosync` folders are gitignored. These links are not required for a normal clone; the standard setup above remains the same elsewhere. For an iCloud-backed folder, keep the repository downloaded or move it outside cloud storage.
+The original Lumen checkout uses macOS/iCloud workarounds: its dependencies and build cache link into `.runtime.nosync`. This managed Gallery worktree has independent dependency and build directories outside the iCloud-backed Documents folder. These workarounds are not required for a normal clone.
 
-Open [Offscript at localhost](http://127.0.0.1:3000). Notes are stored in `.data/offscript.sqlite`, outside Git. Keep that file to preserve local data. SQLite journals may also exist beside it while the app runs. A browser refresh does not reset notes. Deleting browser data does not delete server notes; deleting `.data` does. There is no automatic backup or multi-device synchronization yet.
+Open [Offscript Gallery at localhost](http://127.0.0.1:3001). Notes are stored in this worktree's `.data/offscript.sqlite`, outside Git. Keep that file to preserve local data. SQLite journals may also exist beside it while the app runs. A browser refresh does not reset notes. Deleting browser data does not delete server notes; deleting `.data` does. There is no automatic backup or multi-device synchronization yet.
 
 To preview an optimized build on the same machine:
 

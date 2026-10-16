@@ -11,3 +11,10 @@
 @media (max-width: 759px) { .thread-tether { display: none; } }
 @media (prefers-reduced-motion: reduce) { .thread-tether * { animation: none !important; } }
 @media print { .thread-tether { display: none; } }
+
+/* Gallery uses a precise ink line, without Lumen's glass halo. */
+.gallery-workspace .tether-bloom,
+.gallery-workspace .tether-bed { display: none; }
+.gallery-workspace .tether-line { stroke: #124be8; stroke-width: 2; stroke-dasharray: none; animation: none; }
+.gallery-workspace .tether-halo { fill: #fffdf9; opacity: 1; }
+.gallery-workspace .tether-port { fill: #124be8; stroke: #fffdf9; stroke-width: 2; filter: none; }

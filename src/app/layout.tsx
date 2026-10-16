@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Offscript — Follow your curiosity',
+  title: 'Offscript Gallery — Follow your curiosity',
   description: 'A space for connected thinking. Explore ideas, follow questions, and see how it all fits together.',
   robots: { index: false, follow: false }
 };

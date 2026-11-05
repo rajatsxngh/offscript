@@ -1,6 +1,32 @@
 # Verification record — local workspace
 
+## Gallery consolidation — 5 November 2026
+
+Gallery is now the sole UI in the main checkout. The source and test files match the selected Gallery implementation. Type checking and all 104 isolated tests passed; the optimized production build passed. Browser reload from the main server on `http://127.0.0.1:3001` showed the existing Statistics map and its six topics.
+
+The active Gallery database was migrated using SQLite backup and passed `PRAGMA quick_check`; private connection files retained owner-only permissions. The previous Lumen data and original Gallery worktree remain preserved. The unchanged browser origin retains access to existing local drafts and layout state; this check did not exercise every draft or credential lifecycle. No live AI answer or new sign-in was tested.
+
+The product owner reports poor usability and reluctance to use the app; reasons remain unknown. These engineering checks do not constitute usability acceptance. The PRD records actual use and direct feedback as the next step.
+
 Recorded 15 October 2026. This is a loopback-only, single-learner SQLite milestone. It does not pass the complete public-release requirements or AC01–AC21. Status is tracked in the [requirement register](requirements.md).
+
+## Gallery ChatGPT connection — 16 October 2026
+
+Gallery now supports an app-owned ChatGPT local-client OAuth connection alongside the retained OpenAI API-key option. Explicit provider/model selection controls new questions; ChatGPT failures never automatically switch to API billing. The node context and branching contracts are unchanged.
+
+| Check | Observed result |
+| --- | --- |
+| Full suite (`node --import tsx --test --test-reporter=spec tests/*.test.ts`) | 104 passed, zero failures |
+| TypeScript (`tsc --noEmit --incremental false`) | Passed |
+| Production build (`npm run build`) | Passed, including all three new ChatGPT routes |
+| Live Gallery AI/branch smoke on port 3001 | Passed; temporary map removed and prior selection restored; no generation requested |
+| Browser connection dialog | Both ChatGPT and API-key choices inspected; ChatGPT is initially selected when unconfigured; API form retains its separate billing explanation |
+| Browser authorization initiation | Continue with ChatGPT opened the authorization flow; Gallery shows pending sign-in and Cancel sign-in |
+| Live account connection / inference | Pending the user's official sign-in and consent; no real response claimed |
+
+[Connection-screen screenshot](screenshots/gallery-ai-connections.png). Tests use synthetic keys, signed test identities and temporary files. Coverage includes PKCE/state/browser binding, invalid claims/signatures, callback replay/expiry, token rotation, disconnect/cancel races, private persistence, no silent API fallback, interrupted streams, completion-only answer persistence and scoped context. Review findings on stale-grant cleanup and active-request cancellation were fixed and tested. Public preference errors disable generation without preventing notebook access.
+
+The auth transaction/refresh/request registry is process-local, appropriate for this single local Next process. Restarting the server expires pending sign-ins; the user can start again. Multi-process hosted authentication, multi-account management, resumable UI streaming and production quota controls remain outside this slice.
 
 ## Current AI connection and question-branch iteration
 

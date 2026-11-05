@@ -130,10 +130,15 @@ test('settings routes use local origin protection and only return the public sta
   assert.equal(calls, 0);
   const saved = await POST(localPost(input));
   assert.equal(saved.status, 200);
-  assert.deepEqual(await saved.json(), { configured: true, model: DEFAULT_AI_MODEL, source: 'local' });
+  const savedStatus = await saved.json();
+  assert.deepEqual(savedStatus.apiKey, { configured: true, model: DEFAULT_AI_MODEL, source: 'local' });
+  assert.equal(savedStatus.activeProvider, 'api-key');
+  assert.equal(savedStatus.configured, true);
+  assert.equal(savedStatus.chatgpt.connected, false);
+  assert.ok(!JSON.stringify(savedStatus).includes('sk-route-secret'));
   const status = await GET(new Request('http://localhost:3000/api/ai/settings'));
   assert.equal(status.status, 200);
   assert.equal(status.headers.get('cache-control'), 'no-store');
-  assert.deepEqual(await status.json(), { configured: true, model: DEFAULT_AI_MODEL, source: 'local' });
+  assert.deepEqual(await status.json(), savedStatus);
   assert.equal(calls, 1);
 });

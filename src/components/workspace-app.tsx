@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { ArrowDownToLine, ArrowLeft, ArrowRight, ArrowUp, ArrowUpRight, BookOpen, Check, CheckCheck, ChevronDown, ChevronRight, CircleHelp, Clock3, Ellipsis, FileText, GitBranch, GripVertical, History, Layers2, LoaderCircle, Menu, MessageCircle, Network, PanelRightClose, PanelRightOpen, Pencil, Plus, Search, Settings2, Sparkles, Trash2, UserRound, X } from 'lucide-react';
 import type { Anchor, BlockType, Message, NoteBlock, Topic, Workspace } from '@/lib/types';
+import type { AISettings } from '@/lib/ai-settings';
 import { resolveAnchor } from '@/lib/anchors';
 import { NormalCurve } from './normal-curve';
 import { TopicMap } from './topic-map';
@@ -77,6 +78,8 @@ function BlockBody({ block }: { block: NoteBlock }) {
 
 export default function WorkspaceApp() {
   const [workspace, setWorkspace] = useState<Workspace | null>(null);
+  const [aiSettings, setAISettings] = useState<AISettings | null>(null);
+  const [chatgptPlanNotice, setChatGPTPlanNotice] = useState(false);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [notebookId, setNotebookId] = useState<string | null>(null);
   const [loadingError, setLoadingError] = useState('');
@@ -140,6 +143,8 @@ export default function WorkspaceApp() {
   const messages = workspace?.messages.filter(m => m.topicId === activeId) || [];
   const pendingQuestion = activeId ? pendingQuestions[activeId] : undefined;
   const aiBusy = !!pendingQuestion;
+  const usingChatGPT = !!workspace?.aiConfigured && aiSettings?.activeProvider === 'chatgpt';
+  const connectionLabel = aiSettings?.activeProvider === 'chatgpt' ? 'ChatGPT' : aiSettings?.activeProvider === 'api-key' ? 'OpenAI API' : 'AI';
   const blockConflict = !!blockDraft && !!topic && blockDraft.topicId === topic.id && blockDraft.baseRevision !== topic.revision;
   const ancestors: Topic[] = [];
   if (topic && workspace) { let parent = workspace.topics.find(t => t.id === topic.parentId); const visited = new Set<string>(); while (parent && !visited.has(parent.id)) { visited.add(parent.id); ancestors.unshift(parent); parent = workspace.topics.find(t => t.id === parent?.parentId); } }
@@ -171,6 +176,18 @@ export default function WorkspaceApp() {
     } catch (e) { setLoadingError((e as Error).message); }
   }, []);
   useEffect(() => { void load(); }, [load]);
+  const updateConnectionSettings = useCallback((data: AISettings) => {
+    setAISettings(data);
+    setWorkspace(current => current ? { ...current, aiConfigured: data.configured } : current);
+    if (data.configured && data.activeProvider === 'chatgpt' && !readLocal('chatgpt-plan-notice-dismissed', false)) setChatGPTPlanNotice(true);
+  }, []);
+  useEffect(() => {
+    const controller = new AbortController();
+    void api<AISettings>('/api/ai/settings', { signal: controller.signal, cache: 'no-store' }).then(data => {
+      if (!controller.signal.aborted) updateConnectionSettings(data);
+    }).catch(() => { /* The connection dialog offers a retry if settings are unavailable. */ });
+    return () => controller.abort();
+  }, [updateConnectionSettings]);
   const closeModal = useCallback(() => { connectionIntent.current = null; setModal(null); setError(''); }, []);
   useEffect(() => {
     const media = window.matchMedia('(max-width: 759px)');
@@ -396,9 +413,9 @@ export default function WorkspaceApp() {
     else if (readLocal<string>(`draft:${targetId}`, '').trim() === question) writeLocal(`draft:${targetId}`, '');
   }
   function openConnection() { connectionIntent.current = null; setModal('connect'); }
-  function connectionReady() {
-    setWorkspace(current => current ? { ...current, aiConfigured: true } : current);
-    setModal(null); setAiError(''); setNotice('AI connected. Your conversations are ready.');
+  function connectionReady(settings: AISettings) {
+    updateConnectionSettings(settings);
+    setModal(null); setAiError(''); setNotice(settings.activeProvider === 'chatgpt' ? '' : 'OpenAI API connected. Your conversations are ready.');
     const intent = connectionIntent.current;
     connectionIntent.current = null;
     if (intent) void sendQuestion(intent.topicId, intent.question, intent.userMessageId, true);
@@ -427,6 +444,7 @@ export default function WorkspaceApp() {
       showConversation(targetId);
     } catch (err) {
       let completed = false;
+      void api<AISettings>('/api/ai/settings', { cache: 'no-store' }).then(updateConnectionSettings).catch(() => {});
       try {
         const fresh = await api<Workspace>('/api/workspace');
         // Recovery for one node must not replace another node's newer work.
@@ -526,7 +544,7 @@ export default function WorkspaceApp() {
       <div className="notebook-list">{workspace.notebooks.map(n => <button className={`notebook-item ${notebookId === n.id ? 'active' : ''}`} key={n.id} onClick={() => openMap(n.id)}><Network size={17} /><span>{n.title}</span>{n.isSample && <span className="sample-tag">Sample</span>}</button>)}</div>
       {notebook && <><div className="sidebar-rule" /><div className="sidebar-section-label"><span>ON THIS MAP <span className="topic-count">{topics.length}</span></span><button className="icon-button" aria-label="Create topic" onClick={() => beginTopic(false)}><Plus size={16} /></button></div><nav className="topic-tree" aria-label="Topics">{renderTree(null)}</nav><button className="add-topic-sidebar" onClick={() => beginTopic(false)}><Plus size={14} /> New topic</button></>}
       </div>
-      <div className="sidebar-bottom"><div className="sidebar-note"><GitBranch size={19} /><p>A thought is just<br /><span>the beginning.</span></p></div><button className="sidebar-setting ai-sidebar-connect" onClick={openConnection}><Sparkles size={16} />{workspace.aiConfigured ? 'AI connected' : 'Connect AI'}<span className={`ai-connection-dot ${workspace.aiConfigured ? 'is-connected' : ''}`} /></button><button className="sidebar-setting" onClick={() => { setError(''); setModal('settings'); }}><Settings2 size={16} /> Workspace settings</button><div className="local-workspace"><span className="local-dot" /><span>Local workspace</span><span className="local-avatar">You</span></div></div>
+      <div className="sidebar-bottom"><div className="sidebar-note"><GitBranch size={19} /><p>A thought is just<br /><span>the beginning.</span></p></div><button className="sidebar-setting ai-sidebar-connect" onClick={openConnection}><Sparkles size={16} />{workspace.aiConfigured ? `${connectionLabel} connected` : 'Connect AI'}<span className={`ai-connection-dot ${workspace.aiConfigured ? 'is-connected' : ''}`} /></button><button className="sidebar-setting" onClick={() => { setError(''); setModal('settings'); }}><Settings2 size={16} /> Workspace settings</button><div className="local-workspace"><span className="local-dot" /><span>Local workspace</span><span className="local-avatar">You</span></div></div>
     </aside>
     <div className="workspace-body" inert={(threadOpen && mobileViewport) || !!modal || mobileSidebarOpen}>
       <header className="topbar lumen-topbar">
@@ -612,19 +630,20 @@ export default function WorkspaceApp() {
         </form>
         <div className="compose-footer">
           <button className="compose-branch" type="button" disabled={!draft.trim() || branching || aiBusy} onClick={() => void branchQuestion()} title="Create a connected node and ask this question there">{branching ? <LoaderCircle size={13} className="spinner" /> : <Plus size={15} />}<span>Ask in new node</span></button>
-          <p className="ai-disclaimer">{draft.trim() ? '⌘ / Ctrl + Enter to send' : 'Follow your curiosity.'}</p>
+          {workspace.aiConfigured ? <div className="ai-compose-connection"><button type="button" className="ai-provider-choice" onClick={openConnection} title={`${connectionLabel}${aiSettings?.model ? ` · ${aiSettings.model}` : ''}. Change AI connection.`}><span>{usingChatGPT ? 'Using ChatGPT plan' : connectionLabel}</span><ChevronDown size={11} /></button>{usingChatGPT && <a className="ai-plan-usage" href="https://chatgpt.com/settings/usage" target="_blank" rel="noopener noreferrer">Manage usage<ArrowUpRight size={10} /></a>}</div> : <p className="ai-disclaimer">{draft.trim() ? '⌘ / Ctrl + Enter to send' : 'Follow your curiosity.'}</p>}
         </div>
       </div>
     {selection && threadOpen && threadTab === 'notes' && !modal && <div className="selection-toolbar" role="region" aria-label="Selected passage actions"><GitBranch size={15} /><span>Follow that thought?</span><button onClick={() => beginTopic(true)}>Explore as topic<ArrowUpRight size={13} /></button><button className="icon-button" aria-label="Dismiss text selection" onClick={() => { setSelection(null); window.getSelection()?.removeAllRanges(); }}><X size={14} /></button></div>}
     </TopicThread>}
 
     {notice && <div className="toast" role="status"><Check size={15} /><span>{notice}</span><button aria-label="Dismiss notification" onClick={() => setNotice('')}><X size={14} /></button></div>}
-    {modal === 'connect' && <Dialog title="Connect AI" onClose={closeModal}><AiConnection onConnected={connectionReady} onCancel={closeModal} /></Dialog>}
+    {chatgptPlanNotice && usingChatGPT && !modal && <div className="ai-plan-notice" role="status"><Sparkles size={19} /><div><strong>You’re using your ChatGPT plan</strong><p>Eligible questions in Offscript use your ChatGPT plan. You can manage usage in ChatGPT settings.</p><a href="https://chatgpt.com/settings/usage" target="_blank" rel="noopener noreferrer">Manage usage<ArrowUpRight size={12} /></a></div><button type="button" aria-label="Dismiss ChatGPT plan notice" onClick={() => { setChatGPTPlanNotice(false); writeLocal('chatgpt-plan-notice-dismissed', true); }}><X size={16} /></button></div>}
+    {modal === 'connect' && <Dialog title="Connect AI" onClose={closeModal}><AiConnection onConnected={connectionReady} onSettingsChanged={updateConnectionSettings} onCancel={closeModal} /></Dialog>}
     {modal === 'search' && <Dialog title="Find a thought" onClose={closeModal} wide><div className="search-input-wrap"><Search size={19} /><input data-autofocus aria-label="Search topics and notes" placeholder="Search your topics and notes…" value={search} onChange={e => setSearch(e.target.value)} /></div><div className="search-results">{workspace.topics.filter(t => !search.trim() || `${t.title} ${t.description} ${t.blocks.map(b => b.content).join(' ')}`.toLowerCase().includes(search.toLowerCase())).map(t => <button key={t.id} onClick={() => { navigate(t.id); setModal(null); }}><FileText size={18} /><div><strong>{t.title}</strong><span>{workspace.notebooks.find(n => n.id === t.notebookId)?.title} · {statuses[t.status]}</span><p>{t.description || t.blocks.find(b => b.content)?.content.slice(0, 130) || 'A new place to think.'}</p></div><ArrowUpRight size={17} /></button>)}{!workspace.topics.some(t => `${t.title} ${t.description} ${t.blocks.map(b => b.content).join(' ')}`.toLowerCase().includes(search.toLowerCase())) && <p className="empty-search">No matching thoughts yet. Try another word.</p>}</div></Dialog>}
     {(modal === 'topic' || modal === 'notebook') && <Dialog title={modal === 'notebook' ? 'A new map' : branch ? 'Follow your curiosity' : 'A new topic'} onClose={closeModal}><form onSubmit={modal === 'notebook' ? createNotebook : createTopic}><p className="modal-description">{modal === 'notebook' ? 'A home for the questions, connections, and little breakthroughs that come next.' : branch ? 'Open a new thread. We’ll keep your place, your passage, and your unsent question ready for your return.' : 'Give this idea a place on your map.'}</p>{branch?.anchor.quote && <blockquote className="modal-quote">“{branch.anchor.quote}”</blockquote>}<label>{modal === 'notebook' ? 'Map name' : 'Topic title'}<input data-autofocus value={newTitle} onChange={e => setNewTitle(e.target.value)} placeholder={modal === 'notebook' ? 'What are you learning?' : 'What would you like to understand?'} required maxLength={180} /></label><label>A little context <span>(optional)</span><textarea rows={3} value={newDescription} onChange={e => setNewDescription(e.target.value)} placeholder="A question, a goal, or a starting thought…" /></label>{error && <p className="error-message" role="alert">{error}</p>}<div className="modal-actions"><button className="button ghost" type="button" onClick={closeModal}>Cancel</button><button className="button primary" disabled={busy || !newTitle.trim()} type="submit">{busy ? <LoaderCircle size={15} className="spinner" /> : branch ? <GitBranch size={15} /> : <Plus size={15} />}{modal === 'notebook' ? 'Create map' : branch ? 'Explore topic' : 'Create topic'}</button></div></form></Dialog>}
     {modal === 'keep' && <Dialog title="Keep the part that clicked" onClose={closeModal} wide><form onSubmit={keepAnswer}><p className="modal-description">Make the explanation your own before adding it. Its original discussion stays linked.</p><label>Add to<select value={keepTarget} onChange={e => setKeepTarget(e.target.value)}>{topics.map(t => <option key={t.id} value={t.id}>{t.title}</option>)}</select></label><label>Your saved explanation<textarea data-autofocus rows={9} value={keepText} onChange={e => setKeepText(e.target.value)} required /></label><div className="keep-preview-note"><Sparkles size={14} />Adds an editable insight to this thread, linked to its original discussion.</div>{error && <p className="error-message" role="alert">{error}</p>}<div className="modal-actions"><button className="button ghost" type="button" onClick={closeModal}>Cancel</button><button className="button primary" type="submit" disabled={busy || !keepText.trim()}>{busy ? <LoaderCircle size={15} className="spinner" /> : <Check size={15} />}Keep this insight</button></div></form></Dialog>}
     {modal === 'history' && <Dialog title="A record of your thinking" onClose={closeModal} wide><p className="modal-description">Saved revisions of {topic?.title}. Each save preserves the previous note blocks on this local server.</p>{error && <p className="error-message">{error}</p>}{!history && !error ? <div className="modal-loading"><LoaderCircle className="spinner" size={22} />Loading revisions…</div> : <div className="history-list">{history?.map(rev => <details key={rev.revision}><summary><History size={15} /><strong>Revision {rev.revision}</strong><span>{new Date(rev.createdAt).toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</span><ChevronDown size={14} /></summary><div>{rev.blocks.length === 0 ? <p>Blank note page.</p> : rev.blocks.map(b => <section key={b.id}><span>{blockNames[b.type]}</span><p>{b.content || (b.chart ? `Mean ${b.chart.mean}; standard deviation ${b.chart.deviation}` : 'Empty block')}</p></section>)}</div></details>)}</div>}</Dialog>}
-    {modal === 'settings' && <Dialog title="Your local workspace" onClose={closeModal}><div className="settings-intro"><Logo small /><div><strong>A quieter place to understand.</strong><p>Offscript · Local development preview</p></div></div><div className="settings-section"><h3><CheckCheck size={16} />Where your work lives</h3><p>Notes and conversations are saved in a SQLite database on this app’s server. Unsent questions and editor drafts stay in this browser. This preview has no accounts or cloud sync.</p></div><div className="settings-section"><h3><Sparkles size={16} />AI tutor <span className={`config-badge ${workspace.aiConfigured ? 'connected' : ''}`}>{workspace.aiConfigured ? 'Connected' : 'Not configured'}</span></h3><p>{workspace.aiConfigured ? 'Conversations use this topic and the parent context saved when it branched.' : 'Connect your OpenAI account with an API key to talk through ideas in each node.'}</p><button className="button subtle" onClick={openConnection}><Sparkles size={14} />{workspace.aiConfigured ? 'Manage AI connection' : 'Connect AI'}</button></div><div className="settings-section"><h3><ArrowDownToLine size={16} />Take your notes with you</h3><p>Use the map’s export button for Markdown or JSON. The thread toolbar prints the open thread. Discussions are excluded from exports.</p></div>{notebook && <div className="settings-danger"><div><strong>Delete {notebook.isSample ? 'sample map' : 'this map'}</strong><p>Remove “{notebook.title}” and its topics permanently.</p></div><button className="icon-button danger" aria-label="Delete current map" onClick={() => { setError(''); setModal('delete'); }}><Trash2 size={17} /></button></div>}</Dialog>}
+    {modal === 'settings' && <Dialog title="Your local workspace" onClose={closeModal}><div className="settings-intro"><Logo small /><div><strong>A quieter place to understand.</strong><p>Offscript · Local development preview</p></div></div><div className="settings-section"><h3><CheckCheck size={16} />Where your work lives</h3><p>Notes and conversations are saved in a SQLite database on this app’s server. Unsent questions and editor drafts stay in this browser. Connecting ChatGPT powers the tutor; your workspace remains local.</p></div><div className="settings-section"><h3><Sparkles size={16} />AI tutor <span className={`config-badge ${workspace.aiConfigured ? 'connected' : ''}`}>{workspace.aiConfigured ? connectionLabel : 'Not configured'}</span></h3><p>{workspace.aiConfigured ? `New questions use ${connectionLabel}, with this topic and the parent context saved when it branched.` : 'Use your ChatGPT plan or connect an OpenAI API key to talk through ideas in each node.'}</p><button className="button subtle" onClick={openConnection}><Sparkles size={14} />{workspace.aiConfigured ? 'Manage AI connection' : 'Connect AI'}</button></div><div className="settings-section"><h3><ArrowDownToLine size={16} />Take your notes with you</h3><p>Use the map’s export button for Markdown or JSON. The thread toolbar prints the open thread. Discussions are excluded from exports.</p></div>{notebook && <div className="settings-danger"><div><strong>Delete {notebook.isSample ? 'sample map' : 'this map'}</strong><p>Remove “{notebook.title}” and its topics permanently.</p></div><button className="icon-button danger" aria-label="Delete current map" onClick={() => { setError(''); setModal('delete'); }}><Trash2 size={17} /></button></div>}</Dialog>}
     {modal === 'delete' && <Dialog title="Delete this map?" onClose={closeModal}><p className="modal-description">“{notebook?.title}” and its {topics.length} topics, note revisions, and conversations will be permanently deleted from this local workspace. This cannot be undone.</p><p className="modal-description">Export anything you want to keep before continuing.</p>{error && <p className="error-message" role="alert">{error}</p>}<div className="modal-actions"><button className="button ghost" onClick={closeModal}>Keep map</button><button className="button danger-fill" disabled={busy} onClick={() => void deleteNotebook()}>{busy ? <LoaderCircle className="spinner" size={15} /> : <Trash2 size={15} />}Delete permanently</button></div></Dialog>}
   </div>;
 }

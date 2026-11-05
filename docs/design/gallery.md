@@ -1,6 +1,6 @@
 # Offscript Gallery
 
-The user selected the earlier F / Gallery concept as an alternate branch to compare against Lumen. The approved visual reference is [gallery-reference.png](gallery-reference.png).
+Gallery is the sole product UI, confirmed on 5 November 2026. Its selection does not establish usability acceptance: the product owner reports poor usability and reluctance to use the current app, with the reasons still unknown. See [the decision record](decision-gallery.md). This concept began as an alternate branch for comparison with Lumen. The approved visual reference is [gallery-reference.png](gallery-reference.png).
 
 ## Experience
 
@@ -12,7 +12,7 @@ The selected topic opens a cobalt conversation card in the lower center-right of
 
 The Offset logo remains the identity. The header adds the Gallery label, map title and idea count, search and a prominent New thought action. Conversation, Notes, AI configuration, branching, editing, exports, keyboard access and stored drafts continue using their existing handlers.
 
-## Isolation and comparison
+## Historical comparison setup (retired)
 
 - Lumen: `main`, original checkout, `http://127.0.0.1:3000`.
 - Gallery: `codex/gallery-ui`, managed worktree, `http://127.0.0.1:3001`.
@@ -20,15 +20,15 @@ The Offset logo remains the identity. The header adds the Gallery label, map tit
 - No credentials were copied. Connect AI separately in Gallery if needed.
 - The baseline Lumen commit is `7070cbb`; the original checkout and preview are preserved.
 
-To restart later, run `OFFSCRIPT_LOCAL_PREVIEW=1 npm start` in the chosen checkout after building it. Lumen lives at `/Users/rajatsingh/Documents/ChatGPT/offscript`; Gallery lives at `/Users/rajatsingh/.codex/worktrees/offscript-gallery/offscript`. Gallery's scripts use port 3001, so both can run together.
+The setup above describes the earlier evaluation only. The main checkout at `/Users/rajatsingh/Documents/ChatGPT/offscript` now contains Gallery and uses port 3001. Run `OFFSCRIPT_LOCAL_PREVIEW=1 npm start` there after building. The former Gallery worktree remains as a historical copy; its data and connection files were safely migrated to the main checkout, which owns active writes. It is not a separate UI direction. Lumen is no longer an active preview.
 
-## Implementation and acceptance
+## Historical implementation checks
 
 - [x] Preserve and branch the current app; copy data using SQLite backup.
 - [x] Replace map presentation and layout while retaining interaction handlers.
 - [x] Add Gallery shell and cobalt conversation styling.
 - [x] Run the integrated production build and test suite.
 - [x] Verify desktop/mobile navigation, dragging, drafts and branching in the browser.
-- [x] Leave both previews runnable and document comparison instructions.
+- [x] During comparison, leave both previews runnable and document comparison instructions. This phase ended with the Gallery selection on 5 November 2026.
 
 See the [verification record](../verification.md) and [desktop screenshot](../screenshots/gallery-desktop.jpg).

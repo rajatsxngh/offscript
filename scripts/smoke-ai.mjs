@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
 
 // Exercises the local HTTP contract without sending any question to a provider.
-const base = new URL(process.env.OFFSCRIPT_TEST_URL || 'http://127.0.0.1:3000');
+const base = new URL(process.env.OFFSCRIPT_TEST_URL || 'http://127.0.0.1:3001');
 assert.ok(['localhost', '127.0.0.1', '[::1]'].includes(base.hostname));
 const request = (path, method = 'GET', body, origin = base.origin) => fetch(new URL(path, base), {
   method, headers: { Origin: origin, 'Content-Type': 'application/json' },
@@ -18,7 +18,11 @@ let fixtureId;
 const before = await json('/api/workspace');
 try {
   const settings = await json('/api/ai/settings');
-  assert.deepEqual(Object.keys(settings).sort(), ['configured', 'model', 'source']);
+  assert.equal(typeof settings.configured, 'boolean');
+  assert.ok(['chatgpt', 'api-key', null].includes(settings.activeProvider));
+  assert.deepEqual(Object.keys(settings.apiKey).sort(), ['configured', 'model', 'source']);
+  assert.equal(typeof settings.chatgpt.connected, 'boolean');
+  assert.ok(!('accessToken' in settings.chatgpt) && !('refreshToken' in settings.chatgpt));
   assert.equal((await request('/api/ai/settings', 'POST', {}, 'https://untrusted.example')).status, 403);
   assert.equal((await request('/api/ai/settings', 'POST', { apiKey: '', model: '' })).status, 400);
 

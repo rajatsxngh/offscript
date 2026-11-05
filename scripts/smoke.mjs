@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
 
-const base = process.env.OFFSCRIPT_TEST_URL || 'http://127.0.0.1:3000';
+const base = process.env.OFFSCRIPT_TEST_URL || 'http://127.0.0.1:3001';
 const url = new URL(base);
 if (!['localhost', '127.0.0.1', '[::1]'].includes(url.hostname)) throw new Error('Smoke checks are only allowed against a local server.');
 const request = (path, method = 'GET', body, headers = {}) => fetch(`${base}${path}`, {

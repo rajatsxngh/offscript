@@ -72,7 +72,15 @@ Dependency versions are pinned in `package.json` and its lockfile. The selected 
 
 **Consequences.** No external provider call is verified by configuration code or a mocked test. Non-streaming request execution is partial AI01 work and does not satisfy AI06–AI08. Next add durable run records/events, checkpoints, worker leases, reattachment, Stop/upstream cancellation, bounded safe retries, usage reservation/settlement and model evaluation before shared use. Do not enable uncapped public generation.
 
-## Intended public architecture
+## ADR 005 — Explicit ChatGPT plan or API-key connection in Gallery
+
+**Decision.** Add OpenAI's documented local-client OAuth flow with an app-owned registration, PKCE, browser-bound state, signed identity verification and private rotating token storage. Preserve the existing API-key file. A separate provider preference controls each new request; failures never silently switch billing sources. ChatGPT's model catalog supplies its model choices. No ChatGPT history or Codex authentication files are imported.
+
+**Execution.** ChatGPT uses `store:false`, `stream:true` and only supported request fields. A bounded SSE adapter requires `response.completed` before committing an answer; late errors and incomplete streams remain failed runs. The client continues to receive a completed JSON response. This does not implement durable resumable UI streaming. Normal API origin checks remain strict; only the exact OAuth callback accepts cross-site navigation with loopback and transaction verification.
+
+**Scope.** One connected ChatGPT account for this personal local installation, plus a separately retained API connection. No public multi-user deployment or automatic paid fallback. Identity confirmation is distinct from plan permission and model/inference eligibility.
+
+## Intended public architecture (future shared service)
 
 The PRD proposes a Next.js web service and separate Node worker, Supabase PostgreSQL/Auth/private Storage/Queues, a real text/vision provider adapter and separate production email and monitoring. Render is the proposed web/worker host. These remain proposed until owner accounts, region, limits and configuration are chosen.
 

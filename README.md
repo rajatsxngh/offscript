@@ -1,14 +1,12 @@
-# Offscript — Gallery comparison branch
+# Offscript
 
-This checkout is the alternate **Gallery** interface on `codex/gallery-ui`. Its local preview runs at **http://127.0.0.1:3001**. The original Lumen checkout remains on `main` at **http://127.0.0.1:3000**.
+**Gallery is the selected and sole product UI**, confirmed on 5 November 2026. The main checkout runs at **http://127.0.0.1:3001**. Lumen is retired from active development; its Git and local data history are preserved. Selecting Gallery does not mean its usability has been accepted: the product owner has reported that the current experience does not feel good to use, and the reasons remain to be understood through actual use and direct feedback.
 
-The variants have separate databases and browser drafts. Gallery starts with a snapshot of the existing maps; later changes are not synchronized. No AI credentials were copied. See [Gallery design and comparison notes](docs/design/gallery.md).
-
-Start Gallery with `OFFSCRIPT_LOCAL_PREVIEW=1 npm run start` after `npm run build`, or use `npm run dev`. Both commands use port 3001 in this branch.
+See [the current PRD](docs/PRD-v2.md), [Gallery decision](docs/design/decision-gallery.md), and [Gallery design record](docs/design/gallery.md). Start with `OFFSCRIPT_LOCAL_PREVIEW=1 npm run start` after `npm run build`, or use `npm run dev`. Both use port 3001.
 
 Follow your curiosity. Keep your place.
 
-Offscript is a visual learning workspace with connected topics, nested discussions, editable explanations, and a path back to the passage where a question began. This repository starts the implementation described in [the PRD](docs/PRD.md); the original [Word document](docs/Offscript_PRD.docx) is preserved.
+Offscript is a visual learning workspace with connected topics, nested discussions, editable explanations, and a path back to the passage where a question began. The current requirements are recorded in [PRD v2](docs/PRD-v2.md); the original [PRD](docs/PRD.md) and [Word document](docs/Offscript_PRD.docx) are preserved as historical sources.
 
 ## Current milestone
 
@@ -33,9 +31,9 @@ cp .env.example .env.local
 npm run dev
 ```
 
-The original Lumen checkout uses macOS/iCloud workarounds: its dependencies and build cache link into `.runtime.nosync`. This managed Gallery worktree has independent dependency and build directories outside the iCloud-backed Documents folder. These workarounds are not required for a normal clone.
+This main checkout uses macOS/iCloud workarounds: dependencies and build cache link into `.runtime.nosync`. These workarounds are not required for a normal clone.
 
-Open [Offscript Gallery at localhost](http://127.0.0.1:3001). Notes are stored in this worktree's `.data/offscript.sqlite`, outside Git. Keep that file to preserve local data. SQLite journals may also exist beside it while the app runs. A browser refresh does not reset notes. Deleting browser data does not delete server notes; deleting `.data` does. There is no automatic backup or multi-device synchronization yet.
+Open [Offscript Gallery at localhost](http://127.0.0.1:3001). Notes are stored in `.data/offscript.sqlite`, outside Git. On this machine, `.data` points to `.runtime.nosync/data-gallery`, migrated from Gallery using a consistent SQLite backup and private connection-file copies. The source worktree remains preserved, but active writes now belong to this main checkout. The old Lumen data remains untouched in `.runtime.nosync/data`; it is not merged into Gallery. Keep that file to preserve local data. SQLite journals may also exist beside it while the app runs. A browser refresh does not reset notes. Deleting browser data does not delete server notes; deleting `.data` does. There is no automatic backup or multi-device synchronization yet.
 
 To preview an optimized build on the same machine:
 
@@ -46,9 +44,15 @@ OFFSCRIPT_LOCAL_PREVIEW=1 npm start
 
 ### Optional real AI
 
-Click **Connect AI** in the sidebar. Enter an OpenAI API key and choose a model available to that key. The editable default is `gpt-5.4-mini`. Offscript checks key/model access with a model-metadata GET before saving; this check does not request a billed generation. A configured connection can also be reused with **Continue with this connection**. Successful UI changes take effect without restarting the server.
+Open **Tutor settings** in Gallery and choose **ChatGPT** or **OpenAI API**. Both connections can stay saved. The active choice applies to new questions, including questions in newly branched nodes, without changing conversation history. Switching takes effect without restarting the server. There is no automatic fallback from ChatGPT plan usage to separately billed API usage.
+
+For **ChatGPT**, use Gallery at `http://127.0.0.1:3001` and click **Continue with ChatGPT**. Complete OpenAI's sign-in and plan-usage permission screen in the window it opens. The local app obtains its own registration; it does not read Codex credentials or import ChatGPT conversation history. Select a model from your account's catalog. Eligibility, model access and plan limits are determined by OpenAI; a successful sign-in does not prove successful inference. This integration targets a personal local app, not a publicly hosted service. See [OpenAI's local-client guide](https://developers.openai.com/siwc/token-sharing-open-source).
+
+For **OpenAI API**, enter an API key and choose a model available to that key. The editable default is `gpt-5.4-mini`. Offscript checks key/model access with a metadata GET before saving; this check does not request generation. API usage is billed separately from ChatGPT plan usage.
 
 The key and model are stored server-side in `.data/ai-connection.json`, outside Git, notes and exports. The file is written with owner-only permissions (`0600`); it is a local plaintext credential file, not an encrypted vault. The saved key is never returned in settings responses. Preserve this file only on a machine you trust.
+
+ChatGPT credentials are stored separately in `.data/chatgpt-connection.json` with the same private-file protections. The issued registration and installation identifier persist across disconnects; tokens are cleared locally and remote revocation is attempted. Token refresh is serialized and rotates credentials atomically. `.data/ai-provider.json` records the explicit connection choice. These are local plaintext files, not an encrypted vault; keep `.data` out of source control and shared exports.
 
 Environment configuration is still supported as a fallback when no valid local connection exists. Set these variables in `.env.local` and restart the server after changing them:
 
@@ -59,7 +63,7 @@ OPENAI_MODEL=gpt-5.4-mini
 
 `OPENAI_MODEL` is optional and defaults to `gpt-5.4-mini`; choose another model if needed. Never commit credentials. Neither variable uses the `NEXT_PUBLIC_` prefix. The adapter uses the OpenAI Responses API with `store: false` and application-managed context. The selected topic's notes, local discussion, and inherited fork snapshot are sent to the provider. Unrelated topics are excluded. `store: false` is not a claim of zero provider retention.
 
-Without a configured connection, reading, editing, branching, history and export still work; the UI offers connection setup for generation. There are no fallback canned AI answers. Real generations incur provider charges. The current adapter is non-streaming, with bounded request sizes and a 60-second generation timeout. Model-access validation does not prove successful generation or teaching quality; no live provider answer has been verified in this iteration. Production quota accounting and spending limits remain required before a shared launch.
+Without a configured connection, reading, editing, branching, history and export still work. There are no canned fallback answers. ChatGPT requests consume the authorized plan allowance; API-key requests use API billing. The server consumes ChatGPT's required Responses stream internally and saves an answer only after a successful completion event. The UI receives the finished answer. Requests remain bounded with a 60-second timeout. Model-access validation and mocked tests do not prove successful live generation or teaching quality. Production quota accounting and spending limits remain required before a shared launch.
 
 ## Validate
 
@@ -76,7 +80,7 @@ npm run test:smoke
 node scripts/smoke-ai.mjs
 ```
 
-The smoke check creates and removes a temporary notebook, exercises 12 nested branches, request replay, frozen context, revision conflicts, history/resume and notes-only exports. It defaults to `http://127.0.0.1:3000`; `OFFSCRIPT_TEST_URL` can select another loopback URL. It does not call the AI provider.
+The smoke check creates and removes a temporary notebook, exercises 12 nested branches, request replay, frozen context, revision conflicts, history/resume and notes-only exports. It defaults to `http://127.0.0.1:3001`; `OFFSCRIPT_TEST_URL` can select another loopback URL. It does not call the AI provider.
 
 The AI/branch smoke check verifies public connection status, invalid-key and cross-origin rejection, seeded question branches, idempotent replay/conflicts, question promotion and inherited context. Its temporary fixture is removed; it does not submit a real key or request generation.
 
